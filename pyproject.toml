@@ -1,0 +1,39 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "errorbar-reward"
+dynamic = ["version"]
+description = "The certified reward and the training gate in your own trainer: score rollouts with a calibrated judge, watch your reward with an independent anchor, confirm what to ship."
+readme = "README.md"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [{ name = "errorbar" }]
+keywords = ["reinforcement-learning", "reward-model", "llm-as-judge", "grpo", "trl", "evaluation"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = ["requests>=2.31"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.urls]
+Homepage = "https://errorbar.ai"
+Documentation = "https://errorbar.ai/docs"
+Source = "https://github.com/omnia-v/errorbar-reward"
+
+[project.scripts]
+errorbar-anchor-report = "errorbar_reward.anchor_report:main"
+
+[tool.hatch.version]
+path = "src/errorbar_reward/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/errorbar_reward"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
