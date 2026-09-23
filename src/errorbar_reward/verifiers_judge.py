@@ -57,7 +57,13 @@ def _trace_to_item(trace: Any, agentic: bool, step: str) -> dict[str, Any]:
     if not isinstance(response, str):
         response = steps[-1]["content"] if steps else ""
     key = getattr(getattr(trace, "task", None), "key", None) or hashlib.sha256(conversation.encode()).hexdigest()[:16]
-    item: dict[str, Any] = {"requestId": f"{step}-{key}", "conversation": conversation}
+    # The task key alone is shared by every rollout of that task in a group, and
+    # the reward server meters and records per request id: G rollouts of one task
+    # would collide on one id. The rollout's own content makes each id distinct,
+    # and the same rollout re-graded keeps its id (idempotent metering).
+    rollout = json.dumps(steps, sort_keys=True) if (agentic and steps) else response
+    digest = hashlib.sha256(f"{conversation}\0{rollout}".encode()).hexdigest()[:12]
+    item: dict[str, Any] = {"requestId": f"{step}-{key}-{digest}", "conversation": conversation}
     if agentic and steps:
         item["steps"] = steps
     else:

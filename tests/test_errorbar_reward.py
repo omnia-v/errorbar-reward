@@ -166,7 +166,12 @@ def test_trace_to_item_agentic_splits_prompt_and_steps():
         task=SimpleNamespace(key="k9"),
     )
     item = _trace_to_item(trace, agentic=True, step="7")
-    assert item["requestId"] == "7-k9" and item["conversation"] == "system: be good\nuser: q"
+    assert item["requestId"].startswith("7-k9-") and item["conversation"] == "system: be good\nuser: q"
+    # Two rollouts of the same task in one group get distinct ids (the server meters per
+    # id); the same rollout re-graded keeps its id.
+    other = SimpleNamespace(**{**trace.__dict__, "messages": trace.messages[:-1] + [{"role": "assistant", "content": "other"}], "last_reply": "other"})
+    assert _trace_to_item(other, agentic=True, step="7")["requestId"] != item["requestId"]
+    assert _trace_to_item(trace, agentic=True, step="7")["requestId"] == item["requestId"]
     assert [s["role"] for s in item["steps"]] == ["assistant", "tool", "assistant"]
 
 
